@@ -1,6 +1,9 @@
 import {app} from './app.js';
 import {connectDB} from './db/index.js';
 import dotenv from 'dotenv';
+import cors from "cors";
+app.use(cors({ origin: "http://localhost:5000" }));
+
 dotenv.config(
     {
         path: './.env'
@@ -22,7 +25,7 @@ app.get('/', (req, res) => {
 import authRoutes from './routes/auth.routes.js';
 
 // use routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 
 connectDB(process.env.MONGODB_URI)
 .then(() => {
