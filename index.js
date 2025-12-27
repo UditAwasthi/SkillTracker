@@ -17,6 +17,13 @@ app.get('/', (req, res) => {
 });
 
 
+
+// imports routes
+import authRoutes from './routes/auth.routes.js';
+
+// use routes
+app.use('/api/auth', authRoutes);
+
 connectDB(process.env.MONGODB_URI)
 .then(() => {
 app.listen(PORT, () => {
