@@ -1,15 +1,21 @@
+// controllers/user.controller.js
 import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 
+/* ================================
+   CREATE USER  (REGISTER)
+==================================*/
 const createUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Hash password
     const hash = await bcrypt.hash(password, 10);
 
-    // Save user
-    const user = await User.create({ username, email, password: hash });
+    const user = await User.create({
+      username,
+      email,
+      password: hash,
+    });
 
     res.json({ message: "User registered successfully", user });
   } catch (err) {
@@ -17,61 +23,164 @@ const createUser = async (req, res) => {
   }
 };
 
+/* ================================
+   LOGIN USER
+==================================*/
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
     res.json({ message: "Login successful", user });
   } catch (err) {
     res.status(400).json({ message: "Login error", error: err.message });
   }
 };
 
+/* ================================
+   GET ALL USERS
+==================================*/
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().populate("selectedskills.skill");
     res.json(users);
   } catch (err) {
-    res
-      .status(400)
-      .json({ message: "Error fetching users", error: err.message });
+    res.status(400).json({ message: "Error fetching users", error: err.message });
   }
 };
 
+/* ================================
+   UPDATE USER
+==================================*/
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
     const updates = req.body;
-    updates['password'] = await bcrypt.hash(updates['password'], 10);
-    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
-      new: true,
-    });
+
+    // Only rehash password if provided
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
     res.json(updatedUser);
   } catch (err) {
-    res
-      .status(400)
-      .json({ message: "Error updating user", error: err.message });
+    res.status(400).json({ message: "Error updating user", error: err.message });
   }
 };
 
+/* ================================
+   DELETE USER
+==================================*/
 const deleteUser = async (req, res) => {
   try {
-    const userId = req.params.id;
-    await User.findByIdAndDelete(userId);
+    await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User deleted successfully" });
   } catch (err) {
-    res
-      .status(400)
-      .json({ message: "Error deleting user", error: err.message });
+    res.status(400).json({ message: "Error deleting user", error: err.message });
   }
 };
 
-export { createUser, loginUser, getAllUsers, updateUser, deleteUser };
+/* ================================
+   ADD SKILL TO USER
+==================================*/
+const addSkillToUser = async (req, res) => {
+  try {
+    const { skillId, level = "beginner" } = req.body;
+
+    if (!skillId) return res.status(400).json({ message: "No skillId provided" });
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Prevent duplicates
+    const exists = user.selectedskills.find(
+      (item) => item.skill.toString() === skillId
+    );
+    if (exists) return res.status(400).json({ message: "Skill already added" });
+
+    user.selectedskills.push({ skill: skillId, level });
+    await user.save();
+
+    res.json({ message: "Skill added", skills: user.selectedskills });
+  } catch (err) {
+    res.status(500).json({ message: "Skill add error", error: err.message });
+  }
+};
+
+/* ================================
+   REMOVE SKILL FROM USER
+==================================*/
+const deleteSkillFromUser = async (req, res) => {
+  try {
+    const { id, skillId } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.selectedskills = user.selectedskills.filter(
+      (item) => item.skill.toString() !== skillId
+    );
+
+    await user.save();
+    res.json({ message: "Skill removed", skills: user.selectedskills });
+  } catch (err) {
+    res.status(400).json({ message: "Skill removal error", error: err.message });
+  }
+};
+
+/* ================================
+   UPDATE SKILL LEVEL
+==================================*/
+const updatedSkillLevelForUser = async (req, res) => {
+  try {
+    const { skillId, level } = req.body;
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const skillObj = user.selectedskills.find(
+      (item) => item.skill.toString() === skillId
+    );
+
+    if (!skillObj) return res.status(404).json({ message: "Skill not found" });
+
+    skillObj.level = level;
+    await user.save();
+
+    res.json({ message: "Skill level updated", skills: user.selectedskills });
+  } catch (err) {
+    res.status(400).json({ message: "Skill update error", error: err.message });
+  }
+};
+
+/* ================================
+   SHOW USER SKILLS WITH DETAILS
+==================================*/
+const showUserSkills = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate("selectedskills.skill");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user.selectedskills);
+  } catch (err) {
+    res.status(400).json({ message: "Error fetching skills", error: err.message });
+  }
+};
+
+export {
+  createUser,
+  loginUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  addSkillToUser,
+  deleteSkillFromUser,
+  updatedSkillLevelForUser,
+  showUserSkills,
+};

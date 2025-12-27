@@ -8,8 +8,13 @@ const userSchema = new mongoose.Schema(
 
     password: { type: String, required: true },
 
-    selectedskills: { type: [String], default: [] },
-
+    selectedskills: [
+      {
+        skill: { type: mongoose.Schema.Types.ObjectId, ref: "Skill" },
+        category: { type: String, default: "General" },
+        level: { type: String, default: "beginner" },
+      },
+    ],
     streak: {
       type: Number,
       default: 0,

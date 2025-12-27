@@ -23,9 +23,15 @@ app.get('/', (req, res) => {
 
 // imports routes
 import authRoutes from './routes/auth.routes.js';
+import skillRoutes from './routes/skill.routes.js';
+import userSkillRoutes from './routes/userskill.routes.js';
 
 // use routes
 app.use('/auth', authRoutes);
+app.use('/skills', skillRoutes);
+app.use('/user/:id/skills', userSkillRoutes);
+
+
 
 connectDB(process.env.MONGODB_URI)
 .then(() => {
