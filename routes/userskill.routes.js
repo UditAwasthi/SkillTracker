@@ -8,7 +8,7 @@ import {
     showUserSkills,
 } from "../controllers/user.controller.js";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 router.get("/", showUserSkills);
 router.put("/add", addSkillToUser);
 router.delete("/remove/:skillId", deleteSkillFromUser);
