@@ -1,5 +1,6 @@
 
 import { Router } from "express";
+import { requireAuth } from "../middleware/auth.js";
 
 import {
   addSkillToUser,
@@ -9,8 +10,9 @@ import {
 } from "../controllers/user.controller.js";
 
 const router = Router({ mergeParams: true });
-router.get("/", showUserSkills);
-router.put("/add", addSkillToUser);
-router.delete("/remove/:skillId", deleteSkillFromUser);
-router.put("/levelUpdate/:skillId", updatedSkillLevelForUser);
+router.get("/", requireAuth, showUserSkills);
+router.put("/add", requireAuth, addSkillToUser);
+router.delete("/remove/:skillId", requireAuth, deleteSkillFromUser);
+router.put("/levelUpdate/:skillId", requireAuth, updatedSkillLevelForUser);
+
 export default router;

@@ -8,8 +8,8 @@ import {
 
 const router = Router();
 
-router.post("/log",  logProgress);
-router.put("/update/:progressId",updateProgressEntry);
-router.get("/history", getProgressHistory);
+router.post("/log", requireAuth, logProgress);
+router.put("/update/:progressId", requireAuth, updateProgressEntry);
+router.get("/history", requireAuth, getProgressHistory);
 
 export default router;

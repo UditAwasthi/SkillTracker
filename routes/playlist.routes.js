@@ -9,9 +9,9 @@ import {
 
 const router = Router();
 
-router.post("/create", createPlaylist);
-router.get("/today", getTodayPlaylist);
-router.put("/update-task", updatePlaylistItemStatus);
-router.delete("/:id", deletePlaylist);
+router.post("/create", requireAuth, createPlaylist);
+router.get("/today", requireAuth, getTodayPlaylist);
+router.put("/update-task", requireAuth, updatePlaylistItemStatus);
+router.delete("/:id", requireAuth, deletePlaylist);
 
 export default router;

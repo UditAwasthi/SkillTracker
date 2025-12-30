@@ -1,7 +1,7 @@
 // controllers/user.controller.js
 import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
-
+import jwt from "jsonwebtoken";
 /* ================================
    CREATE USER  (REGISTER)
 ==================================*/
@@ -29,6 +29,8 @@ const createUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ message: "Email & password required" });
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -36,9 +38,22 @@ const loginUser = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-    res.json({ message: "Login successful", user });
+    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRE,
+    });
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: false, // MUST be false on localhost
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return res.json({ message: "Login successful" });
   } catch (err) {
-    res.status(400).json({ message: "Login error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   }
 };
 
@@ -50,7 +65,9 @@ const getAllUsers = async (req, res) => {
     const users = await User.find().populate("selectedskills.skill");
     res.json(users);
   } catch (err) {
-    res.status(400).json({ message: "Error fetching users", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error fetching users", error: err.message });
   }
 };
 
@@ -67,10 +84,14 @@ const updateUser = async (req, res) => {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    });
     res.json(updatedUser);
   } catch (err) {
-    res.status(400).json({ message: "Error updating user", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error updating user", error: err.message });
   }
 };
 
@@ -82,7 +103,9 @@ const deleteUser = async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User deleted successfully" });
   } catch (err) {
-    res.status(400).json({ message: "Error deleting user", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error deleting user", error: err.message });
   }
 };
 
@@ -93,9 +116,11 @@ const addSkillToUser = async (req, res) => {
   try {
     const { skillId, level = "beginner" } = req.body;
 
-    if (!skillId) return res.status(400).json({ message: "No skillId provided" });
+    if (!skillId)
+      return res.status(400).json({ message: "No skillId provided" });
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.userId);
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Prevent duplicates
@@ -130,7 +155,9 @@ const deleteSkillFromUser = async (req, res) => {
     await user.save();
     res.json({ message: "Skill removed", skills: user.selectedskills });
   } catch (err) {
-    res.status(400).json({ message: "Skill removal error", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Skill removal error", error: err.message });
   }
 };
 
@@ -141,7 +168,7 @@ const updatedSkillLevelForUser = async (req, res) => {
   try {
     const { skillId, level } = req.body;
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const skillObj = user.selectedskills.find(
@@ -164,12 +191,16 @@ const updatedSkillLevelForUser = async (req, res) => {
 ==================================*/
 const showUserSkills = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate("selectedskills.skill");
+    const user = await User.findById(req.params.id).populate(
+      "selectedskills.skill"
+    );
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user.selectedskills);
   } catch (err) {
-    res.status(400).json({ message: "Error fetching skills", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error fetching skills", error: err.message });
   }
 };
 

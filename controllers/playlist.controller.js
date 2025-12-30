@@ -3,20 +3,10 @@ import { Playlist } from "../models/playlist.model.js";
 
 const createPlaylist = async (req, res) => {
     try {
-        // const { skillId, items } = req.body;
-
-        // const playlist = await Playlist.create({
-        //     userId: req.userId,      
-        //     skillId,
-        //     items,
-        //     status: "pending"
-        // });
-
-        // Above code modified to accept userId from body for testing without auth middleware
-        const { userId,skillId, items } = req.body;
+        const { skillId, items } = req.body;
 
         const playlist = await Playlist.create({
-            userId,      
+            userId: req.userId,      
             skillId,
             items,
             status: "pending"
@@ -33,9 +23,7 @@ const getTodayPlaylist = async (req, res) => {
         today.setHours(0, 0, 0, 0);
 
         const playlist = await Playlist.findOne({
-            // userId: req.userId,
-            // Modified to accept userId from body for testing without auth middleware
-            userId: req.body.userId,
+            userId: req.userId,
             dateAssigned: { $gte: today }
         }).populate("skillId");
 
@@ -52,9 +40,7 @@ const updatePlaylistItemStatus = async (req, res) => {
 
         const playlist = await Playlist.findOne({
             _id: playlistId,
-            // userId: req.userId
-            // Modified to accept userId from body for testing without auth middleware
-            userId: req.body.userId
+            userId: req.userId
         });
 
         if (!playlist) return res.status(404).json({ message: "Playlist not found" });
