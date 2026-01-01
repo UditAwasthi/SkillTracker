@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    lastCheckIN: { type: Date, default: null },
   },
   { timestamps: true }
 );

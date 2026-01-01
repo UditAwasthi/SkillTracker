@@ -29,6 +29,8 @@ import userSkillRoutes from "./routes/userskill.routes.js";
 import express from "express";
 import playlistRoutes from "./routes/playlist.routes.js";
 import progressRoutes from "./routes/progress.routes.js";
+import dashBoardRoutes from "./routes/dashboard.routes.js"
+import streakRoutes from "./routes/streak.routes.js";
 
 // use routes
 app.use("/auth", authRoutes);
@@ -36,6 +38,8 @@ app.use("/skills", skillRoutes);
 app.use("/user/:id/skills", userSkillRoutes);
 app.use("/playlist", playlistRoutes);
 app.use("/progress", progressRoutes);
+app.use("/user/dashboard", dashBoardRoutes);
+app.use("/user/streak", streakRoutes);
 
 connectDB(process.env.MONGODB_URI)
   .then(() => {
