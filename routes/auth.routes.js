@@ -20,4 +20,3 @@ router.get("/get-all-users", requireAuth, getAllUsers);
 export default router;
 
 
-// 69504a82dcb4a2dffbc394c3

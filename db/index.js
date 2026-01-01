@@ -20,7 +20,7 @@ const connectDB = async (URL) => {
             console.log("Database already initialized ✔");
         }
 
-        console.log("SkillTrackr DB ready for use");
+        console.log("SkillTracker DB ready for use");
     }
     catch (error) {
         console.error("MongoDB connection failed:", error.message);

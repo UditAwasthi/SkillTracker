@@ -24,7 +24,7 @@ const createUser = async (req, res) => {
 };
 
 /* ================================
-   LOGIN USER
+   LOGIN USER - USING TOKENS INSTEAD OF Cookies
 ==================================*/
 const loginUser = async (req, res) => {
   try {
@@ -39,23 +39,24 @@ const loginUser = async (req, res) => {
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRE,
+      expiresIn: "7d",
     });
 
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: false, // MUST be false on localhost
-      sameSite: "lax",
-      path: "/",
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      }
     });
 
-    return res.json({ message: "Login successful" });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: err.message });
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 /* ================================
    GET ALL USERS

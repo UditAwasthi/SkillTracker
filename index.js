@@ -8,10 +8,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3001", // your frontend client
-    credentials: true,
+    origin: "*", // allow Flutter/Electron/mobile apps
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type, Authorization",
   })
 );
+
 dotenv.config({
   path: "./.env",
 });
