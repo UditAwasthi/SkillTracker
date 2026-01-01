@@ -16,19 +16,37 @@ const getDashboardData = async (req, res) => {
       dateAssigned: { $gte: today },
     }).populate("skillId");
 
-    const todayProgress = await Progress.findOne({userId,
-        date: {$gte : today}
+    const todayProgress = await Progress.findOne({
+      userId,
+      date: { $gte: today },
     }).populate("skillId");
+
+    const lastCheckIn = user.lastCheckIN ? new Date(user.lastCheckIN) : null;
+    let checkedToday = false;
+    if (lastCheckIn) {
+      const last = new Date(lastCheckIn);
+      last.setHours(0, 0, 0, 0);
+      checkedToday = last.getTime() === today.getTime();
+    }
+
     return res.json({
       message: "Dashboard Data Loaded Successfully",
       user,
       skills,
       playlist: playlist || null,
       todayProgress: todayProgress || null,
+      streakData: {
+        currentStreak: user.streak,
+        lastCheckIn: user.lastCheckIN,
+        checkedToday,
+        nextCheckInRequired: !checkedToday,
+      },
     });
   } catch (error) {
-    return res.status(500).json({ message: "Dashboard Error" ,error:error.message});
+    return res
+      .status(500)
+      .json({ message: "Dashboard Error", error: error.message });
   }
 };
 
-export {getDashboardData}
+export { getDashboardData };
