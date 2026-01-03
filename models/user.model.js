@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     selectedskills: [
       {
         skill: { type: mongoose.Schema.Types.ObjectId, ref: "Skill" },
+        content:{type: mongoose.Schema.Types.ObjectId, ref: "Course"},
         category: { type: String, default: "General" },
         level: { type: String, default: "beginner" },
       },
@@ -19,7 +20,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
     lastCheckIN: { type: Date, default: null },
+    refreshTokens: [
+      {
+        token: String,
+        createdAt: Date,
+        device: String,
+      },
+    ],
   },
   { timestamps: true }
 );
