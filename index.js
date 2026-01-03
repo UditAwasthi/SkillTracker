@@ -1,9 +1,12 @@
+import "./config/env.js";
 import { app } from "./app.js";
 import { connectDB } from "./db/index.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./middleware/errorHandler.js";
 
+app.use(errorHandler);
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -17,7 +20,7 @@ app.use(
 dotenv.config({
   path: "./.env",
 });
-
+console.log("Gemini Key Loaded:", process.env.GEMINI_API_KEY);
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
@@ -35,6 +38,8 @@ import dashBoardRoutes from "./routes/dashboard.routes.js"
 import streakRoutes from "./routes/streak.routes.js";
 import contentRoutes from "./routes/content.routes.js";
 import healthRoutes from "./routes/health.routes.js";
+import skillCourseRoutes from "./routes/skillCourse.routes.js";
+
 
 
 // use routes
@@ -47,6 +52,8 @@ app.use("/user/dashboard", dashBoardRoutes);
 app.use("/user/streak", streakRoutes);
 app.use("/content", contentRoutes);
 app.use("/health", healthRoutes);
+app.use("/skills/actions", skillCourseRoutes);
+
 
 connectDB(process.env.MONGODB_URI)
   .then(() => {

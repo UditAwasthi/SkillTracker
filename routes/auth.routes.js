@@ -7,11 +7,16 @@ import {
   deleteUser,
 } from "../controllers/user.controller.js";
 import { requireAuth } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
+import {
+  registerSchema,
+  loginSchema,
+} from "../validators/auth.validator.js";
 
 const router = Router();
 
-router.post("/register", createUser);
-router.post("/login", loginUser);
+router.post("/register", validate(registerSchema), createUser);
+router.post("/login", validate(loginSchema), loginUser);
 
 router.delete("/:id", requireAuth, deleteUser);
 router.put("/:id", requireAuth, updateUser);
